@@ -102,6 +102,44 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 .cat-bar-fill{height:100%;border-radius:10px;transition:width .5s ease;}
 .cat-bar-amt{font-family:'Fraunces',serif;font-size:.85rem;width:90px;text-align:right;color:var(--muted);}
 
+/* ── REDESIGNED OVERVIEW ── */
+.hero-grid{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center;margin-bottom:1.5rem;}
+@media(max-width:600px){.hero-grid{grid-template-columns:1fr;justify-items:center;}}
+.hero-chart{display:flex;flex-direction:column;align-items:center;gap:.75rem;}
+.hero-legend{display:flex;gap:1rem;font-size:.74rem;color:var(--muted);}
+.hero-legend i,.cat-leg-row i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle;}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;width:100%;}
+.stat-tile{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
+.stat-tile .t-label{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.05em;color:var(--muted);margin-bottom:.3rem;}
+.stat-tile .t-value{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:600;}
+.stat-tile.income{border-left:4px solid var(--green);}.stat-tile.income .t-value{color:var(--green);}
+.stat-tile.expense{border-left:4px solid var(--accent);}.stat-tile.expense .t-value{color:var(--accent);}
+.stat-tile.pos{border-left:4px solid var(--green);}.stat-tile.pos .t-value{color:var(--green);}
+.stat-tile.neg{border-left:4px solid var(--accent);}.stat-tile.neg .t-value{color:var(--accent);}
+.stat-tile.pending{border-left:4px solid var(--gold);}.stat-tile.pending .t-value{color:var(--gold);}
+
+.chart-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.5rem;}
+.cat-chart-grid{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center;}
+@media(max-width:600px){.cat-chart-grid{grid-template-columns:1fr;justify-items:center;}}
+.cat-legend{display:flex;flex-direction:column;gap:.5rem;width:100%;}
+.cat-leg-row{display:flex;align-items:center;gap:.5rem;font-size:.82rem;}
+.cat-leg-row .cl-name{flex:1;}
+.cat-leg-row .cl-pct{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);width:38px;text-align:right;}
+.cat-leg-row .cl-amt{font-family:'Fraunces',serif;font-weight:600;width:80px;text-align:right;}
+
+.prog-track{height:16px;background:var(--warm-mid);border-radius:10px;overflow:hidden;margin:.5rem 0 .75rem;}
+.prog-paid{height:100%;background:linear-gradient(90deg,var(--green),#5fb088);border-radius:10px;transition:width .6s ease;}
+.prog-legend{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;font-size:.76rem;color:var(--muted);}
+
+.dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+@media(max-width:600px){.dual-grid{grid-template-columns:1fr;}}
+.big-tile{display:flex;align-items:center;gap:1rem;border-radius:14px;padding:1.3rem 1.4rem;color:#fff;}
+.big-tile .bt-icon{font-size:2rem;}
+.big-tile .bt-label{font-size:.72rem;opacity:.85;margin-bottom:.25rem;}
+.big-tile .bt-value{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;}
+.big-tile.save{background:linear-gradient(135deg,#3a7d5a,#2a9a94);}
+.big-tile.debt{background:linear-gradient(135deg,#c9553a,#b54a55);}
+
 /* LIST */
 .fin-list{display:flex;flex-direction:column;gap:.5rem;}
 .fin-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--surface);border-radius:8px;border:1.5px solid var(--border);border-left-width:4px;}
@@ -110,6 +148,13 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 .fin-item .dt{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);}
 .fin-item .badge{font-size:.66rem;padding:.12rem .5rem;border-radius:20px;background:var(--green-soft);color:var(--green);white-space:nowrap;}
 .fin-item .badge.pending{background:#fdf3d9;color:var(--gold);}
+.paid-toggle{font-family:'Noto Sans Thai',sans-serif;font-size:.66rem;font-weight:500;padding:.22rem .6rem;border-radius:20px;border:1.5px solid;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;}
+.paid-toggle:active{transform:scale(.94);}
+.paid-toggle.unpaid{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+.paid-toggle.unpaid:hover{background:var(--accent);color:#fff;}
+.paid-toggle.paid{background:var(--green-soft);color:var(--green);border-color:var(--green);}
+.paid-toggle.paid:hover{filter:brightness(.95);}
+.fin-item.is-unpaid{background:linear-gradient(0deg,var(--accent-soft),var(--surface) 60%);}
 .fin-item .amt{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;min-width:90px;text-align:right;}
 .fin-item .amt.in{color:var(--green);}
 .fin-item .amt.out{color:var(--accent);}
@@ -400,48 +445,115 @@ function renderAll(){
   renderList("savings");renderLiabilities();renderTrend();
 }
 
+// Build an SVG donut chart from segments [{value,color,label}]
+function donutSVG(segments,total,centerTop,centerBottom,size){
+  size=size||180;
+  const r=size/2-16, cx=size/2, cy=size/2, circ=2*Math.PI*r;
+  let offset=0;
+  const arcs=segments.filter(s=>s.value>0).map(s=>{
+    const frac=total>0?s.value/total:0;
+    const len=frac*circ;
+    const dash=`${len} ${circ-len}`;
+    const seg=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="22" stroke-dasharray="${dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"><title>${s.label}</title></circle>`;
+    offset+=len;
+    return seg;
+  }).join("");
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" style="display:block">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--warm-mid)" stroke-width="22"/>
+    ${arcs}
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-family:Fraunces,serif;font-size:${size*0.13}px;font-weight:600;fill:var(--ink)">${centerTop}</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" style="font-family:'DM Mono',monospace;font-size:${size*0.06}px;fill:var(--muted)">${centerBottom}</text>
+  </svg>`;
+}
+
 function renderOverview(){
   const m=curMonth();
   const inc=sum(m.income);
   const paidT=expPaid(m.expenses), dueT=expDue(m.expenses), pendT=expPending(m.expenses);
-  const exp=paidT; // actual cash out
+  const exp=paidT;
   const bal=inc-exp;
   const sav=sum(m.savings);
-  // liabilities = latest outstanding loan balance (not a sum)
   const liabItems=m.liabilities||[];
   const liab=liabItems.length?liabItems[liabItems.length-1].amt:0;
   const expPct=inc>0?Math.min(exp/inc*100,100):0;
-  // category totals (use effective amount)
+  const savePct=inc>0?Math.max(0,(bal/inc*100)):0;
+
+  // category totals
   const catT={};(m.expenses||[]).forEach(e=>{catT[e.cat||"other"]=(catT[e.cat||"other"]||0)+expAmt(e);});
-  const maxCat=Math.max(...Object.values(catT),1);
+  const catEntries=Object.entries(catT).sort((a,b)=>b[1]-a[1]);
+  const catTotal=catEntries.reduce((s,[,v])=>s+v,0);
+
+  // donut 1: income split into spent / saved
+  const incomeDonut=donutSVG([
+    {value:exp,color:"var(--accent)",label:"จ่ายไป"},
+    {value:Math.max(bal,0),color:"var(--green)",label:"เหลือเก็บ"},
+  ], inc||1, baht(bal), bal>=0?"เหลือเก็บ":"ติดลบ", 200);
+
+  // donut 2: categories
+  const catDonut=donutSVG(
+    catEntries.map(([c,v])=>({value:v,color:CAT_COLOR[c]||"#888",label:CAT_LABEL[c]||c})),
+    catTotal||1, baht(catTotal), "รายจ่าย", 200);
+
   const el=document.getElementById("tab-overview");
   el.innerHTML=`
-    <div class="summary-cards">
-      <div class="sum-card"><div class="label">รายรับรวม</div><div class="value income">${baht(inc)}</div><div class="sub">INCOME</div></div>
-      <div class="sum-card"><div class="label">จ่ายจริงแล้ว</div><div class="value expense">${baht(paidT)}</div><div class="sub">PAID</div></div>
-      <div class="sum-card light"><div class="label">คงเหลือ (หลังจ่ายจริง)</div><div class="value ${bal>=0?"income":"expense"}">${baht(bal)}</div><div class="sub">${bal>=0?"เหลือเก็บ":"ติดลบ"}</div></div>
+    <!-- Hero: income donut + key stats -->
+    <div class="hero-grid">
+      <div class="hero-chart">
+        ${incomeDonut}
+        <div class="hero-legend">
+          <span><i style="background:var(--accent)"></i>จ่ายไป ${expPct.toFixed(0)}%</span>
+          <span><i style="background:var(--green)"></i>เหลือ ${savePct.toFixed(0)}%</span>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-tile income"><div class="t-label">รายรับ</div><div class="t-value">${baht(inc)}</div></div>
+        <div class="stat-tile expense"><div class="t-label">จ่ายจริง</div><div class="t-value">${baht(paidT)}</div></div>
+        <div class="stat-tile ${bal>=0?"pos":"neg"}"><div class="t-label">คงเหลือ</div><div class="t-value">${baht(bal)}</div></div>
+        <div class="stat-tile pending"><div class="t-label">ค้างจ่าย</div><div class="t-value">${baht(pendT)}</div></div>
+      </div>
     </div>
-    <div class="summary-cards">
-      <div class="sum-card light"><div class="label">ยอดที่ต้องจ่ายทั้งหมด</div><div class="value" style="color:var(--muted)">${baht(dueT)}</div><div class="sub">TOTAL DUE</div></div>
-      <div class="sum-card light"><div class="label">ค้างจ่าย (ยังไม่ได้จ่าย)</div><div class="value" style="color:${pendT>0?"var(--gold)":"var(--green)"}">${baht(pendT)}</div><div class="sub">PENDING</div></div>
+
+    <!-- Category donut -->
+    <div class="chart-card">
+      <div class="section-label">รายจ่ายแยกตามหมวดหมู่</div>
+      <div class="cat-chart-grid">
+        <div class="cat-donut">${catDonut}</div>
+        <div class="cat-legend">
+          ${catEntries.map(([c,v])=>`
+            <div class="cat-leg-row">
+              <i style="background:${CAT_COLOR[c]||"#888"}"></i>
+              <span class="cl-name">${CAT_LABEL[c]||c}</span>
+              <span class="cl-pct">${catTotal>0?(v/catTotal*100).toFixed(0):0}%</span>
+              <span class="cl-amt">${baht(v)}</span>
+            </div>`).join("")||'<div class="empty"><span>📊</span>ยังไม่มีรายจ่าย</div>'}
+        </div>
+      </div>
     </div>
-    <div class="balance-vis">
-      <div class="section-label">สัดส่วนจ่ายจริงต่อรายรับ</div>
-      <div class="balance-track"><div class="balance-fill-exp" style="width:${expPct}%"></div></div>
-      <div class="balance-legend"><span>จ่ายไป ${expPct.toFixed(0)}%</span><span>${baht(bal)} เหลือ</span></div>
+
+    <!-- Due vs paid progress -->
+    <div class="chart-card">
+      <div class="section-label">ความคืบหน้าการจ่าย</div>
+      <div class="prog-track">
+        <div class="prog-paid" style="width:${dueT>0?(paidT/dueT*100):0}%"></div>
+      </div>
+      <div class="prog-legend">
+        <span><b style="color:var(--green)">${baht(paidT)}</b> จ่ายแล้ว</span>
+        <span><b style="color:var(--gold)">${baht(pendT)}</b> ค้างจ่าย</span>
+        <span>รวม ${baht(dueT)}</span>
+      </div>
     </div>
-    <div class="summary-cards">
-      <div class="sum-card light"><div class="label">เงินออม/กองทุนสะสม</div><div class="value" style="color:var(--green)">${baht(sav)}</div><div class="sub">SAVINGS</div></div>
-      <div class="sum-card light"><div class="label">หนี้สหกรณ์ (คงเหลือ)</div><div class="value" style="color:var(--accent)">${baht(liab)}</div><div class="sub">LOAN BALANCE</div></div>
+
+    <!-- Savings & Debt tiles -->
+    <div class="dual-grid">
+      <div class="big-tile save">
+        <div class="bt-icon">🐷</div>
+        <div><div class="bt-label">เงินออม/กองทุนสะสม</div><div class="bt-value">${baht(sav)}</div></div>
+      </div>
+      <div class="big-tile debt">
+        <div class="bt-icon">🏦</div>
+        <div><div class="bt-label">หนี้สหกรณ์ (คงเหลือ)</div><div class="bt-value">${baht(liab)}</div></div>
+      </div>
     </div>
-    <hr class="divider"/>
-    <div class="section-label">รายจ่ายแยกตามหมวดหมู่</div>
-    ${Object.entries(catT).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`
-      <div class="cat-bar-row">
-        <span class="cat-bar-label">${CAT_LABEL[c]||c}</span>
-        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(a/maxCat*100).toFixed(1)}%;background:${CAT_COLOR[c]||"#888"}"></div></div>
-        <span class="cat-bar-amt">${baht(a)}</span>
-      </div>`).join("")||'<div class="empty"><span>📊</span>ยังไม่มีรายจ่าย</div>'}
   `;
 }
 
@@ -514,13 +626,13 @@ function renderExpenses(){
         ${ds.map(it=>{
           const unpaid=it.paid==null;
           const partialDiff=(it.paid!=null&&it.due!=null&&Math.abs(it.paid-it.due)>0.01);
-          const badge=unpaid
-            ?`<span class="badge pending">ค้างจ่าย</span>`
-            :(it.status?`<span class="badge">${it.status}</span>`:`<span class="badge">จ่ายแล้ว</span>`);
-          return `<div class="fin-item" style="border-left-color:${CAT_COLOR[it.cat||"other"]}${unpaid?";opacity:.72":""}">
+          const toggle=unpaid
+            ?`<button class="paid-toggle unpaid" onclick="togglePaid(${it._i})" title="แตะเพื่อทำเครื่องหมายว่าจ่ายแล้ว">● ค้างจ่าย</button>`
+            :`<button class="paid-toggle paid" onclick="togglePaid(${it._i})" title="แตะเพื่อทำเครื่องหมายว่ายังไม่จ่าย">✓ จ่ายแล้ว</button>`;
+          return `<div class="fin-item${unpaid?" is-unpaid":""}" style="border-left-color:${unpaid?"var(--accent)":"var(--green)"}">
             <span class="dot" style="background:${CAT_COLOR[it.cat||"other"]}"></span>
             <span class="nm">${it.name}${partialDiff?`<span style="font-size:.66rem;color:var(--muted)"> (ต้องจ่าย ${baht(it.due)})</span>`:""}</span>
-            ${badge}
+            ${toggle}
             <span class="amt out">${baht(expAmt(it))}</span>
             <div class="item-actions">
               <button class="edit-btn" onclick="openEdit('expenses',${it._i})">✏️</button>
@@ -657,6 +769,19 @@ window.addItem=async function(section){
 window.delItem=async function(section,i){
   if(!confirm("ลบรายการนี้?"))return;
   data[viewKey][section].splice(i,1);
+  renderAll();await persist();
+};
+
+window.togglePaid=async function(i){
+  const it=data[viewKey].expenses[i];
+  if(!it)return;
+  if(it.paid==null){
+    // mark as paid — pay the full due amount
+    it.paid=it.due!=null?it.due:0;
+  }else{
+    // mark as unpaid
+    it.paid=null;
+  }
   renderAll();await persist();
 };
 
