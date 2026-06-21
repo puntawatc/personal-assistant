@@ -4,6 +4,20 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>การเงินของฉัน</title>
+<script>
+// Apply theme before render to prevent flash
+(function(){
+  var mode=localStorage.getItem("themeMode")||"auto";
+  var t=mode;
+  if(mode==="auto"){
+    var n=new Date();
+    var u7=new Date(n.getTime()+(-7*60-n.getTimezoneOffset())*60000);
+    var h=u7.getHours();
+    t=(h>=19||h<6)?"dark":"light";
+  }
+  document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&family=Noto+Sans+Thai:wght@400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -13,15 +27,35 @@
   --green:#3a7d5a;--green-soft:#d9ede5;
   --gold:#c5960a;--blue:#4a80b5;
   --muted:#8a8580;--border:#d4cec6;
+  --surface:#ffffff;--header-bg:#1a1a2e;--header-fg:#f7f4ef;
+}
+[data-theme="dark"]{
+  --ink:#ece8e1;--paper:#15151f;--warm-mid:#2a2a38;
+  --accent:#e0917f;--accent-soft:#3a2722;
+  --green:#6fc4a0;--green-soft:#1e3a2c;
+  --gold:#d9b94a;--blue:#7fb0e0;
+  --muted:#9a9585;--border:#33333f;
+  --surface:#20202c;--header-bg:#0e0e16;--header-fg:#ece8e1;
+}
+[data-theme="dark"]{
+  --ink:#ececf2;--paper:#16161f;--warm-mid:#2a2a38;
+  --accent:#e07a60;--accent-soft:#3a2a26;
+  --green:#5fb088;--green-soft:#1f3a2e;
+  --gold:#d9aa3a;--blue:#6a9fd0;
+  --muted:#9a9aa8;--border:#34343f;
+  --surface:#1f1f2b;--header-bg:#0e0e16;--header-fg:#ececf2;
 }
 html{font-size:16px;}
-body{background:var(--paper);color:var(--ink);font-family:'Noto Sans Thai','Inter',sans-serif;min-height:100vh;padding-bottom:3rem;}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans Thai','Inter',sans-serif;min-height:100vh;padding-bottom:3rem;transition:background .3s,color .3s;}
 .num{font-family:'Fraunces',serif;}
 
-#sync-bar{display:flex;align-items:center;gap:.5rem;padding:.4rem 2rem;font-family:'DM Mono',monospace;font-size:.7rem;background:var(--ink);color:#9a9585;}
+#sync-bar{display:flex;align-items:center;gap:.5rem;padding:.4rem 2rem;font-family:'DM Mono',monospace;font-size:.7rem;background:var(--header-bg);color:#9a9585;}
 #sync-dot{width:7px;height:7px;border-radius:50%;background:#9a9585;flex-shrink:0;transition:background .3s;}
 
-header{background:var(--ink);color:var(--paper);padding:1.5rem 2rem;display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;}
+header{background:var(--header-bg);color:var(--header-fg);padding:1.5rem 2rem;display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;}
+#theme-toggle{align-self:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:var(--header-fg);font-size:1rem;width:38px;height:38px;border-radius:50%;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;}
+#theme-toggle:hover{background:rgba(255,255,255,.2);}
+#theme-toggle:active{transform:scale(.92);}
 header h1{font-family:'Fraunces',serif;font-weight:300;font-size:2rem;letter-spacing:-.02em;flex:1;}
 header h1 em{font-style:italic;color:#c9aa8c;}
 #live-date{font-family:'DM Mono',monospace;font-size:.75rem;color:#9a9585;letter-spacing:.05em;}
@@ -40,8 +74,8 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 
 /* SUMMARY CARDS */
 .summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
-.sum-card{background:var(--ink);color:var(--paper);border-radius:12px;padding:1.4rem 1.5rem;}
-.sum-card.light{background:#fff;color:var(--ink);border:1.5px solid var(--border);}
+.sum-card{background:var(--header-bg);color:var(--header-fg);border-radius:12px;padding:1.4rem 1.5rem;}
+.sum-card.light{background:var(--surface);color:var(--ink);border:1.5px solid var(--border);}
 .sum-card .label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.06em;color:#9a9585;margin-bottom:.5rem;}
 .sum-card.light .label{color:var(--muted);}
 .sum-card .value{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:600;}
@@ -53,7 +87,7 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 .sum-card.light .sub{color:var(--muted);}
 
 /* BALANCE BAR */
-.balance-vis{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
+.balance-vis{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
 .balance-track{height:14px;background:var(--warm-mid);border-radius:10px;overflow:hidden;display:flex;margin:1rem 0 .5rem;}
 .balance-fill-exp{background:var(--accent);height:100%;transition:width .5s;}
 .balance-legend{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);}
@@ -67,7 +101,7 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 
 /* LIST */
 .fin-list{display:flex;flex-direction:column;gap:.5rem;}
-.fin-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#fff;border-radius:8px;border:1.5px solid var(--border);border-left-width:4px;}
+.fin-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--surface);border-radius:8px;border:1.5px solid var(--border);border-left-width:4px;}
 .fin-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .fin-item .nm{flex:1;font-size:.88rem;}
 .fin-item .dt{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);}
@@ -89,7 +123,7 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 @media(max-width:600px){.add-row{grid-template-columns:1fr 1fr;}}
 .field{display:flex;flex-direction:column;gap:.3rem;}
 .field label{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.06em;color:var(--muted);}
-.field input,.field select{border:1.5px solid var(--border);border-radius:6px;padding:.55rem .7rem;font-family:'Noto Sans Thai',sans-serif;font-size:.86rem;background:#fff;color:var(--ink);outline:none;}
+.field input,.field select{border:1.5px solid var(--border);border-radius:6px;padding:.55rem .7rem;font-family:'Noto Sans Thai',sans-serif;font-size:.86rem;background:var(--surface);color:var(--ink);outline:none;}
 .field input:focus,.field select:focus{border-color:var(--accent);}
 .btn{padding:.55rem 1.2rem;border-radius:6px;border:none;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;font-size:.8rem;font-weight:500;transition:transform .1s;}
 .btn:active{transform:scale(.97);}
@@ -165,6 +199,7 @@ header h1 em{font-style:italic;color:#c9aa8c;}
 <header>
   <h1>การเงิน<em>ของฉัน</em></h1>
   <div id="live-date"></div>
+  <button id="theme-toggle" onclick="cycleTheme()" title="เปลี่ยนธีม">🌙</button>
 </header>
 
 <div class="month-nav">
@@ -205,7 +240,7 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
-const SEED={"2026-05":{"income":[{"name":"เงินเดือน","date":"2026-04-28","amt":164996.0},{"name":"ค่าวิชีพ","date":"2026-04-28","amt":10000.0},{"name":"เบี้ยเลี้ยงเดินทาง","date":"2026-04-28","amt":8893.33},{"name":"ค่าน้ำมัน","date":"2026-04-28","amt":17365.51},{"name":"เบี้ยเลี้ยงเชียงใหม่-แม่ฮ่องสอน","date":"2026-04-28","amt":6675.0},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-04-30","amt":2230.0},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-04-30","amt":850.0},{"name":"เงินรางวัลพิเศษ 1/2569","date":"2026-05-08","amt":243819.65},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-05-08","amt":2423.0},{"name":"ค่าที่พักตากอากาศ","date":"2026-05-12","amt":1800.0},{"name":"ค่ารักษาทันตกรรม ต้นส้ม","date":"2026-05-20","amt":3600.0},{"name":"ค่าเยี่ยมไข้ สหหรณ์ บวท.","date":"2026-05-22","amt":2500.0}],"expenses":[{"name":"ค่า พรบ. OMODA","date":"2026-04-24","amt":645.21,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-04-25","amt":2066.78,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ค่าไฟฟ้า 99/247","date":"2026-04-25","amt":2356.89,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ค่าน้ำมัน","date":"2026-04-28","amt":17365.51,"status":"หักเงินเดือน","cat":"utilities"},{"name":"ค่าสมาขิกสหภาพฯ บวท.","date":"2026-04-28","amt":50.0,"status":"หักเงินเดือน","cat":"tax"},{"name":"เงินกองทุน","date":"2026-04-28","amt":24749.4,"status":"หักเงินเดือน","cat":"savings"},{"name":"เบี้ยเลี้ยงเดินทาง","date":"2026-04-28","amt":8893.33,"status":"หักเงินเดือน","cat":"transport"},{"name":"สหกรณ์ออมทรัพย์ บวท.","date":"2026-04-28","amt":62979.0,"status":"หักเงินเดือน","cat":"savings"},{"name":"หักภาษี ณ ที่จ่าย","date":"2026-04-28","amt":29543.03,"status":"หักเงินเดือน","cat":"tax"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-04-29","amt":5000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"บัตร Lotus กรุงศรี","date":"2026-04-29","amt":13336.89,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ซื้อนาฬิกา Smart Watch","date":"2026-04-29","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าหอเพียง","date":"2026-04-29","amt":6000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ภาษีรถ OMODA 2569","date":"2026-04-30","amt":1563.0,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ทำบุญพ่อพี่ตั้ม","date":"2026-04-30","amt":1000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าแม่บ้านย่า","date":"2026-05-01","amt":7500.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"แชร์พี่น้ำ","date":"2026-05-01","amt":2000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"แชร์อ้อย","date":"2026-05-01","amt":2400.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าโทรศัพท์ x 4","date":"2026-05-01","amt":1290.93,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าโทรศัพท์ พอเพียง","date":"2026-05-01","amt":784.93,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อล๊อตเตอรี่ เป๋าตัง","date":"2026-05-01","amt":960.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"บัตร KTC 1","date":"2026-05-02","amt":4599.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-05-05","amt":2432.55,"status":"จ่ายขั้นต่ำ","cat":"debt"},{"name":"ค่าอินเตอร์เน็ต True","date":"2026-05-08","amt":551.16,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ไทยประกัน 37801472","date":"2026-05-08","amt":6600.0,"status":"จ่ายแล้ว","cat":"health"},{"name":"กอช. แม่โอ","date":"2026-05-08","amt":2000.0,"status":"จ่ายแล้ว","cat":"savings"},{"name":"เงินเดือนเพียง","date":"2026-05-08","amt":5000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อกล่องพลาสติกใหญ่","date":"2026-05-09","amt":1000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"คืนเงินโอ","date":"2026-05-09","amt":12000.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-05-09","amt":27974.43,"status":"จ่ายส่วนที่เหลือ","cat":"debt"},{"name":"ค่างวดรถ OMODA 15/48","date":"2026-05-10","amt":15124.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าใช้จ่ายในบ้าน-โอ","date":"2026-05-11","amt":2900.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"คืนเงินยายแดง","date":"2026-05-13","amt":20000.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-05-13","amt":2000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เปลี่ยงยางรถ OMODA","date":"2026-05-15","amt":17400.0,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ไทยประกันชีวิต","date":"2026-05-15","amt":965.0,"status":"หักเงินเดือน","cat":"health"},{"name":"ค่าลงทะเบียนติว ATC","date":"2026-05-15","amt":41000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อล๊อตเตอรี่ พลัส","date":"2026-05-15","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"เติมเป๋าตังค์ โอ","date":"2026-05-16","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-05-17","amt":2000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"ซื้อ Keyboard ให้เพียง","date":"2026-05-18","amt":2000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าใช้จ่ายในบ้าน โอ","date":"2026-05-18","amt":3000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"โอนให้เพียง (เที่ยวเขาค้อ)","date":"2026-05-18","amt":5000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อ Mouse ให้เพียง","date":"2026-05-18","amt":1312.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าเครื่องสำอาง โอ","date":"2026-05-21","amt":2000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าลงทะเบียนเพียง","date":"2026-05-21","amt":1200.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ครัวบ้านแม่ กิ๊กพียง","date":"2026-05-21","amt":835.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เติมทรู ให้เพียง","date":"2026-05-22","amt":1000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อเครื่องทำน้ำอุ่น TikTok","date":"2026-05-23","amt":1718.55,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"เติมน้ำมัน CRV","date":"2026-05-23","amt":1000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ซื้อ Printer","date":"2026-05-23","amt":2300.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"Topland อาเขต","date":"2026-05-23","amt":820.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"กระดาษ A4+ปากกา","date":"2026-05-23","amt":185.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-05-25","amt":2742.21,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"โอนให้แม่บ้านศูนย์","date":"2026-05-26","amt":1000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เติมเงินทรูโอ","date":"2026-05-27","amt":500.0,"status":"จ่ายแล้ว","cat":"other"}],"savings":[{"name":"กอช. แม่โอ","amt":69321.38},{"name":"สหกรณ์ออมทรัพย์","amt":10714.14},{"name":"สหกรณ์ออมทรัพย์พิเศษ","amt":42450.38},{"name":"ทุนเรือนหุ้น","amt":1363500.0},{"name":"กองทุน","amt":1834290.3}],"liabilities":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]},"2026-06":{"income":[{"name":"เงินเดือน","date":"2026-05-28","amt":164996.0},{"name":"ค่าวิชีพ","date":"2026-05-28","amt":10000.0},{"name":"ค่าเบี้ยเลี้ยงเดินทาง","date":"2026-05-28","amt":3190.0},{"name":"พอเพียง (รางวัลจากย่า)","date":"2026-06-07","amt":12000.0},{"name":"เข้าบัญชี","date":"2026-06-07","amt":89000.0}],"expenses":[{"name":"หักภาษี ณ ที่จ่าย","date":"2026-05-28","amt":23935.32,"status":"หักเงินเดือน","cat":"tax"},{"name":"เงินกองทุน","date":"2026-05-28","amt":24749.4,"status":"หักเงินเดือน","cat":"savings"},{"name":"ค่าเบี้ยเลี้ยงเดินทาง (หัก)","date":"2026-05-28","amt":3190.0,"status":"หักเงินเดือน","cat":"transport"},{"name":"ค่าสมาขิกสหภาพฯ บวท.","date":"2026-05-28","amt":50.0,"status":"หักเงินเดือน","cat":"tax"},{"name":"สหกรณ์ออมทรัพย์ บวท.","date":"2026-05-28","amt":62979.0,"status":"หักเงินเดือน","cat":"savings"},{"name":"ค่าใช้จ่ายในบ้าน โอ","date":"2026-05-28","amt":2000.0,"status":"","cat":"home"},{"name":"กดเงินสด โอ","date":"2026-05-28","amt":900.0,"status":"","cat":"other"},{"name":"บัตร Lotus กรุงศรี","date":"2026-05-29","amt":10914.3,"status":"","cat":"debt"},{"name":"ค่าหอ+ค่าไฟฟ้า พอเพียง","date":"2026-05-30","amt":5000.0,"status":"","cat":"utilities"},{"name":"ไทยประกัน 37801472","date":"2026-05-31","amt":6600.0,"status":"","cat":"health"},{"name":"ไทยประกัน 21424280","date":"2026-05-31","amt":1388.0,"status":"","cat":"health"},{"name":"ไทยประกัน 86554551","date":"2026-05-31","amt":26180.0,"status":"","cat":"health"},{"name":"เงินเดือนเพียง","date":"2026-05-31","amt":10000.0,"status":"","cat":"other"},{"name":"แชร์อ้อย","date":"2026-06-01","amt":2000.0,"status":"","cat":"debt"},{"name":"บัตร KTC 1","date":"2026-06-01","amt":419.0,"status":"","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-06-01","amt":1474.0,"status":"","cat":"debt"},{"name":"ค่าแม่บ้านย่า","date":"2026-06-02","amt":7500.0,"status":"","cat":"home"},{"name":"แชร์พี่น้ำ","date":"2026-06-02","amt":2000.0,"status":"","cat":"utilities"},{"name":"ค่าโทรศัพท์ x 4","date":"2026-06-03","amt":961.93,"status":"","cat":"other"},{"name":"ค่าโทรศัพท์ พอเพียง","date":"2026-06-03","amt":784.93,"status":"","cat":"other"},{"name":"ค่างวดรถ OMODA","date":"2026-06-10","amt":15124.0,"status":"","cat":"debt"},{"name":"ค่าอินเตอร์เน็ต True","date":"2026-06-10","amt":533.93,"status":"","cat":"utilities"},{"name":"กอช. แม่โอ","date":"2026-06-10","amt":2000.0,"status":"","cat":"savings"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-06-25","amt":2138.9,"status":"","cat":"utilities"},{"name":"ค่าไฟฟ้า 99/247","date":"2026-06-25","amt":1918.18,"status":"","cat":"utilities"}],"savings":[{"name":"กอช. แม่โอ","amt":71301.02},{"name":"สหกรณ์ออมทรัพย์","amt":10714.14},{"name":"สหกรณ์ออมทรัพย์พิเศษ","amt":43952.38},{"name":"ทุนเรือนหุ้น","amt":1369000.0},{"name":"กองทุน","amt":1692595.2},{"name":"KKP","amt":1000.0},{"name":"NVDA","amt":1000.0},{"name":"RKLB","amt":1000.0}],"liabilities":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]},"_liab_timeline":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-04-30","amt":2984883.0},{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]};
+const SEED={"2026-05":{"income":[{"name":"เงินเดือน","date":"2026-04-28","amt":164996.0},{"name":"ค่าวิชีพ","date":"2026-04-28","amt":10000.0},{"name":"เบี้ยเลี้ยงเดินทาง","date":"2026-04-28","amt":8893.33},{"name":"ค่าน้ำมัน","date":"2026-04-28","amt":17365.51},{"name":"เบี้ยเลี้ยงเชียงใหม่-แม่ฮ่องสอน","date":"2026-04-28","amt":6675.0},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-04-30","amt":2230.0},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-04-30","amt":850.0},{"name":"เงินรางวัลพิเศษ 1/2569","date":"2026-05-08","amt":243819.65},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-05-08","amt":2423.0},{"name":"ค่าที่พักตากอากาศ","date":"2026-05-12","amt":1800.0},{"name":"ค่ารักษาทันตกรรม ต้นส้ม","date":"2026-05-20","amt":3600.0},{"name":"ค่าเยี่ยมไข้ สหหรณ์ บวท.","date":"2026-05-22","amt":2500.0}],"expenses":[{"name":"ค่า พรบ. OMODA","date":"2026-04-24","amt":645.21,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-04-25","amt":2066.78,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ค่าไฟฟ้า 99/247","date":"2026-04-25","amt":2356.89,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ค่าน้ำมัน","date":"2026-04-28","amt":17365.51,"status":"หักเงินเดือน","cat":"utilities"},{"name":"ค่าสมาขิกสหภาพฯ บวท.","date":"2026-04-28","amt":50.0,"status":"หักเงินเดือน","cat":"tax"},{"name":"เงินกองทุน","date":"2026-04-28","amt":24749.4,"status":"หักเงินเดือน","cat":"savings"},{"name":"เบี้ยเลี้ยงเดินทาง","date":"2026-04-28","amt":8893.33,"status":"หักเงินเดือน","cat":"transport"},{"name":"สหกรณ์ออมทรัพย์ บวท.","date":"2026-04-28","amt":62979.0,"status":"หักเงินเดือน","cat":"savings"},{"name":"หักภาษี ณ ที่จ่าย","date":"2026-04-28","amt":29543.03,"status":"หักเงินเดือน","cat":"tax"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-04-29","amt":5000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"บัตร Lotus กรุงศรี","date":"2026-04-29","amt":13336.89,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ซื้อนาฬิกา Smart Watch","date":"2026-04-29","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าหอเพียง","date":"2026-04-29","amt":6000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ภาษีรถ OMODA 2569","date":"2026-04-30","amt":1563.0,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ทำบุญพ่อพี่ตั้ม","date":"2026-04-30","amt":1000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าแม่บ้านย่า","date":"2026-05-01","amt":7500.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"แชร์พี่น้ำ","date":"2026-05-01","amt":2000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"แชร์อ้อย","date":"2026-05-01","amt":2400.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าโทรศัพท์ x 4","date":"2026-05-01","amt":1290.93,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าโทรศัพท์ พอเพียง","date":"2026-05-01","amt":784.93,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อล๊อตเตอรี่ เป๋าตัง","date":"2026-05-01","amt":960.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"บัตร KTC 1","date":"2026-05-02","amt":4599.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-05-05","amt":2432.55,"status":"จ่ายขั้นต่ำ","cat":"debt"},{"name":"ค่าอินเตอร์เน็ต True","date":"2026-05-08","amt":551.16,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ไทยประกัน 37801472","date":"2026-05-08","amt":6600.0,"status":"จ่ายแล้ว","cat":"health"},{"name":"กอช. แม่โอ","date":"2026-05-08","amt":2000.0,"status":"จ่ายแล้ว","cat":"savings"},{"name":"เงินเดือนเพียง","date":"2026-05-08","amt":5000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อกล่องพลาสติกใหญ่","date":"2026-05-09","amt":1000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"คืนเงินโอ","date":"2026-05-09","amt":12000.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-05-09","amt":27974.43,"status":"จ่ายส่วนที่เหลือ","cat":"debt"},{"name":"ค่างวดรถ OMODA 15/48","date":"2026-05-10","amt":15124.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าใช้จ่ายในบ้าน-โอ","date":"2026-05-11","amt":2900.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"คืนเงินยายแดง","date":"2026-05-13","amt":20000.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-05-13","amt":2000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เปลี่ยงยางรถ OMODA","date":"2026-05-15","amt":17400.0,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ไทยประกันชีวิต","date":"2026-05-15","amt":965.0,"status":"หักเงินเดือน","cat":"health"},{"name":"ค่าลงทะเบียนติว ATC","date":"2026-05-15","amt":41000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อล๊อตเตอรี่ พลัส","date":"2026-05-15","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"เติมเป๋าตังค์ โอ","date":"2026-05-16","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-05-17","amt":2000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"ซื้อ Keyboard ให้เพียง","date":"2026-05-18","amt":2000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าใช้จ่ายในบ้าน โอ","date":"2026-05-18","amt":3000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"โอนให้เพียง (เที่ยวเขาค้อ)","date":"2026-05-18","amt":5000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อ Mouse ให้เพียง","date":"2026-05-18","amt":1312.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าเครื่องสำอาง โอ","date":"2026-05-21","amt":2000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าลงทะเบียนเพียง","date":"2026-05-21","amt":1200.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ครัวบ้านแม่ กิ๊กพียง","date":"2026-05-21","amt":835.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เติมทรู ให้เพียง","date":"2026-05-22","amt":1000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อเครื่องทำน้ำอุ่น TikTok","date":"2026-05-23","amt":1718.55,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"เติมน้ำมัน CRV","date":"2026-05-23","amt":1000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ซื้อ Printer","date":"2026-05-23","amt":2300.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"Topland อาเขต","date":"2026-05-23","amt":820.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"กระดาษ A4+ปากกา","date":"2026-05-23","amt":185.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-05-25","amt":2742.21,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"โอนให้แม่บ้านศูนย์","date":"2026-05-26","amt":1000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เติมเงินทรูโอ","date":"2026-05-27","amt":500.0,"status":"จ่ายแล้ว","cat":"other"}],"savings":[{"name":"กอช. แม่โอ","amt":69321.38},{"name":"สหกรณ์ออมทรัพย์","amt":10714.14},{"name":"สหกรณ์ออมทรัพย์พิเศษ","amt":42450.38},{"name":"ทุนเรือนหุ้น","amt":1363500.0},{"name":"กองทุน","amt":1834290.3}],"liabilities":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]},"2026-06":{"income":[{"name":"เงินเดือนคงเหลือ (สุทธิ)","date":"2026-05-28","amt":63282.28},{"name":"เข้าบัญชี","date":"2026-06-07","amt":89000.0}],"expenses":[{"name":"ค่าใช้จ่ายในบ้าน โอ","date":"2026-05-28","amt":2000.0,"status":"","cat":"home"},{"name":"กดเงินสด โอ","date":"2026-05-28","amt":900.0,"status":"","cat":"other"},{"name":"บัตร Lotus กรุงศรี","date":"2026-05-29","amt":10914.3,"status":"","cat":"debt"},{"name":"ค่าหอ+ค่าไฟฟ้า พอเพียง","date":"2026-05-30","amt":5000.0,"status":"","cat":"utilities"},{"name":"ไทยประกัน 37801472","date":"2026-05-31","amt":6600.0,"status":"","cat":"health"},{"name":"ไทยประกัน 21424280","date":"2026-05-31","amt":1388.0,"status":"หักเงินเดือน","cat":"health"},{"name":"ไทยประกัน 86554551","date":"2026-05-31","amt":26180.0,"status":"","cat":"health"},{"name":"เงินเดือนเพียง","date":"2026-05-31","amt":10000.0,"status":"","cat":"other"},{"name":"แชร์อ้อย","date":"2026-06-01","amt":2000.0,"status":"","cat":"debt"},{"name":"ล๊อตเตอรี่พลัส","date":"2026-06-01","amt":840.0,"status":"","cat":"other"},{"name":"กดเงินสด แม่สอด","date":"2026-06-01","amt":2000.0,"status":"","cat":"other"},{"name":"บัตร KTC 1","date":"2026-06-01","amt":419.0,"status":"","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-06-01","amt":1474.0,"status":"","cat":"debt"},{"name":"ค่าแม่บ้านย่า","date":"2026-06-02","amt":7500.0,"status":"","cat":"home"},{"name":"แชร์พี่น้ำ","date":"2026-06-02","amt":2000.0,"status":"","cat":"utilities"},{"name":"ค่าโทรศัพท์ x 4","date":"2026-06-03","amt":961.93,"status":"","cat":"utilities"},{"name":"ค่าโทรศัพท์ พอเพียง","date":"2026-06-03","amt":784.93,"status":"","cat":"utilities"},{"name":"โอนให้โอ","date":"2026-06-03","amt":2000.0,"status":"","cat":"other"},{"name":"ค่าโรงแรม น่าน","date":"2026-06-05","amt":2680.0,"status":"","cat":"other"},{"name":"โอนเงินสด","date":"2026-06-05","amt":500.0,"status":"","cat":"other"},{"name":"เติมเงินเป๋าตัง","date":"2026-06-05","amt":500.0,"status":"","cat":"other"},{"name":"โอนให้โอ","date":"2026-06-05","amt":2000.0,"status":"","cat":"other"},{"name":"โอนเงินสด","date":"2026-06-06","amt":500.0,"status":"","cat":"other"},{"name":"โอนให้โอ","date":"2026-06-07","amt":2000.0,"status":"","cat":"other"},{"name":"ร้านข้าวอนันต์ แยกวุ่นวาย","date":"2026-06-07","amt":540.0,"status":"","cat":"other"},{"name":"จ่ายกองกลาง พี่เอ๋","date":"2026-06-07","amt":2500.0,"status":"","cat":"other"},{"name":"ค่างวดรถ OMODA","date":"2026-06-10","amt":15124.0,"status":"","cat":"debt"},{"name":"ค่าอินเตอร์เน็ต True","date":"2026-06-10","amt":533.93,"status":"","cat":"utilities"},{"name":"กอช. แม่โอ","date":"2026-06-10","amt":3000.0,"status":"","cat":"savings"},{"name":"โอนให้โอ","date":"2026-06-11","amt":2000.0,"status":"","cat":"other"},{"name":"โอนให้เพียงซื้อรองเท้าตีแบด","date":"2026-06-11","amt":5000.0,"status":"","cat":"other"},{"name":"ร้านข้าวอนันต์ แยกวุ่นวาย","date":"2026-06-11","amt":440.0,"status":"","cat":"other"},{"name":"เติมน้ำมัน CRV","date":"2026-06-12","amt":1000.0,"status":"","cat":"utilities"},{"name":"โอนเงินซื้อหุ้น เกียรตินาคิน","date":"2026-06-12","amt":3000.0,"status":"","cat":"savings"},{"name":"เติมเงิน True พอเพียง","date":"2026-06-12","amt":500.0,"status":"","cat":"utilities"},{"name":"ซื้อเก้าอี้ให้ย่า","date":"2026-06-13","amt":3753.0,"status":"","cat":"home"},{"name":"เติมน้ำมันรถกระบะ","date":"2026-06-12","amt":1000.0,"status":"","cat":"utilities"},{"name":"ซื้อปั๊มลม พกพา","date":"2026-06-12","amt":499.0,"status":"","cat":"transport"},{"name":"ซื้อของไทยการค้า","date":"2026-06-12","amt":732.0,"status":"","cat":"other"},{"name":"เติม True","date":"2026-06-12","amt":300.0,"status":"","cat":"utilities"},{"name":"โอนให้โอ","date":"2026-06-15","amt":5000.0,"status":"","cat":"other"},{"name":"จ่ายค่าอาหารเลี้ยงคณะ ISO","date":"2026-06-15","amt":1525.0,"status":"","cat":"other"},{"name":"ไทยประกัน โอ","date":"2026-06-16","amt":965.0,"status":"หักเงินเดือน","cat":"health"},{"name":"โอนให้เพียง","date":"2026-06-16","amt":5000.0,"status":"","cat":"other"},{"name":"ซื้อล๊อตเตอรี่พลัส","date":"2026-06-16","amt":840.0,"status":"","cat":"other"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-06-25","amt":2138.9,"status":"","cat":"utilities"},{"name":"ค่าไฟฟ้า 99/247","date":"2026-06-25","amt":1918.18,"status":"","cat":"utilities"}],"savings":[{"name":"กอช. แม่โอ","amt":71301.02},{"name":"สหกรณ์ออมทรัพย์","amt":10714.14},{"name":"สหกรณ์ออมทรัพย์พิเศษ","amt":43952.38},{"name":"ทุนเรือนหุ้น","amt":1369000.0},{"name":"กองทุน","amt":1692595.2},{"name":"KKP (หุ้น)","amt":1000.0},{"name":"NVDA (หุ้น)","amt":1000.0},{"name":"RKLB (หุ้น)","amt":1000.0}],"liabilities":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]},"_liab_timeline":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-04-30","amt":2984883.0},{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]};
 
 const CAT_LABEL={utilities:"ค่าสาธารณูปโภค",transport:"ค่าเดินทาง/รถ",debt:"หนี้/บัตรเครดิต",health:"สุขภาพ/ประกัน",home:"ค่าใช้จ่ายในบ้าน",savings:"เงินออม/กองทุน",tax:"ภาษี",other:"อื่นๆ"};
 const CAT_COLOR={utilities:"#4a80b5",transport:"#c5960a",debt:"#c9553a",health:"#8a6daa",home:"#3a7d5a",savings:"#2a9a94",tax:"#b54a55",other:"#8a8580"};
@@ -251,6 +286,40 @@ function sum(arr){return (arr||[]).reduce((s,x)=>s+(x.amt||0),0);}
 
 const updateDate=()=>{document.getElementById("live-date").textContent=new Date().toLocaleDateString("th-TH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});};
 updateDate();setInterval(updateDate,60000);
+
+// ── THEME (auto day/night by UTC-7, or manual) ──
+// themeMode: "auto" | "light" | "dark"
+let themeMode=localStorage.getItem("themeMode")||"auto";
+function isNightUTC7(){
+  // current time in UTC-7 (Thailand source data tz request)
+  const nowUTC=new Date();
+  const utc7=new Date(nowUTC.getTime()+(-7*60-nowUTC.getTimezoneOffset())*60000);
+  const h=utc7.getHours();
+  return h>=19||h<6; // night = 7pm–6am
+}
+function effectiveTheme(){
+  if(themeMode==="light")return "light";
+  if(themeMode==="dark")return "dark";
+  return isNightUTC7()?"dark":"light";
+}
+function applyTheme(){
+  const t=effectiveTheme();
+  document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");
+  const btn=document.getElementById("theme-toggle");
+  if(btn){
+    const icon=themeMode==="auto"?"🌗":themeMode==="dark"?"🌙":"☀️";
+    btn.textContent=icon;
+    btn.title=themeMode==="auto"?`อัตโนมัติ (ตอนนี้: ${t==="dark"?"กลางคืน":"กลางวัน"})`:themeMode==="dark"?"โหมดกลางคืน":"โหมดกลางวัน";
+  }
+}
+window.cycleTheme=function(){
+  themeMode=themeMode==="auto"?"light":themeMode==="light"?"dark":"auto";
+  localStorage.setItem("themeMode",themeMode);
+  applyTheme();
+};
+applyTheme();
+// re-check auto theme every 5 min so it flips at sunrise/sunset
+setInterval(()=>{if(themeMode==="auto")applyTheme();},300000);
 
 window.switchTab=function(name){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
@@ -399,7 +468,7 @@ function renderLiabilities(){
       <div class="sum-card"><div class="label">ยอดหนี้คงเหลือล่าสุด</div><div class="value expense">${baht(cur)}</div><div class="sub">สหกรณ์ออมทรัพย์</div></div>
       ${change!==null?`<div class="sum-card light"><div class="label">เปลี่ยนแปลงจากเดือนก่อน</div><div class="value" style="color:${change<=0?"var(--green)":"var(--accent)"}">${change<=0?"▼ ":"▲ "}${baht(Math.abs(change))}</div><div class="sub">${change<=0?"ชำระไปแล้ว":"เพิ่มขึ้น"}</div></div>`:""}
     </div>
-    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:1rem 1.2rem 1.2rem;font-size:.8rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5">
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:1rem 1.2rem 1.2rem;font-size:.8rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5">
       💡 ยอดนี้คือ<strong style="color:var(--ink)">หนี้คงเหลือ ณ สิ้นเดือน</strong> ไม่ใช่ยอดที่ต้องบวกกันทุกเดือน — แต่ละเดือนจะแสดงยอดล่าสุดที่เหลืออยู่
     </div>
     <div class="section-label">ประวัติยอดคงเหลือรายเดือน</div>
