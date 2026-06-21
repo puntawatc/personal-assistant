@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>การเงินของฉัน</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&family=Noto+Sans+Thai:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#1a1a2e;--paper:#f7f4ef;--warm-mid:#e8e2d9;
+  --accent:#c9553a;--accent-soft:#f0e0db;
+  --green:#3a7d5a;--green-soft:#d9ede5;
+  --gold:#c5960a;--blue:#4a80b5;
+  --muted:#8a8580;--border:#d4cec6;
+}
+html{font-size:16px;}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans Thai','Inter',sans-serif;min-height:100vh;padding-bottom:3rem;}
+.num{font-family:'Fraunces',serif;}
+
+#sync-bar{display:flex;align-items:center;gap:.5rem;padding:.4rem 2rem;font-family:'DM Mono',monospace;font-size:.7rem;background:var(--ink);color:#9a9585;}
+#sync-dot{width:7px;height:7px;border-radius:50%;background:#9a9585;flex-shrink:0;transition:background .3s;}
+
+header{background:var(--ink);color:var(--paper);padding:1.5rem 2rem;display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;}
+header h1{font-family:'Fraunces',serif;font-weight:300;font-size:2rem;letter-spacing:-.02em;flex:1;}
+header h1 em{font-style:italic;color:#c9aa8c;}
+#live-date{font-family:'DM Mono',monospace;font-size:.75rem;color:#9a9585;letter-spacing:.05em;}
+
+.month-nav{display:flex;align-items:center;gap:1rem;padding:1rem 2rem;max-width:980px;margin:0 auto;}
+.month-nav span{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:300;flex:1;text-align:center;}
+
+.tabs{display:flex;border-bottom:2px solid var(--border);background:var(--paper);position:sticky;top:0;z-index:10;overflow-x:auto;}
+.tab-btn{font-family:'Noto Sans Thai',sans-serif;font-size:.82rem;font-weight:500;padding:.85rem 1.4rem;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-btn:hover:not(.active){color:var(--ink);}
+
+.panel{display:none;padding:2rem;max-width:980px;margin:0 auto;}
+.panel.active{display:block;}
+.section-label{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+
+/* SUMMARY CARDS */
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+.sum-card{background:var(--ink);color:var(--paper);border-radius:12px;padding:1.4rem 1.5rem;}
+.sum-card.light{background:#fff;color:var(--ink);border:1.5px solid var(--border);}
+.sum-card .label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.06em;color:#9a9585;margin-bottom:.5rem;}
+.sum-card.light .label{color:var(--muted);}
+.sum-card .value{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:600;}
+.sum-card .value.income{color:#7fc4a0;}
+.sum-card .value.expense{color:#e0917f;}
+.sum-card.light .value.income{color:var(--green);}
+.sum-card.light .value.expense{color:var(--accent);}
+.sum-card .sub{font-family:'DM Mono',monospace;font-size:.62rem;color:#9a9585;margin-top:.3rem;}
+.sum-card.light .sub{color:var(--muted);}
+
+/* BALANCE BAR */
+.balance-vis{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
+.balance-track{height:14px;background:var(--warm-mid);border-radius:10px;overflow:hidden;display:flex;margin:1rem 0 .5rem;}
+.balance-fill-exp{background:var(--accent);height:100%;transition:width .5s;}
+.balance-legend{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);}
+
+/* CATEGORY BARS */
+.cat-bar-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.7rem;}
+.cat-bar-label{font-size:.82rem;width:130px;flex-shrink:0;}
+.cat-bar-track{flex:1;height:9px;background:var(--warm-mid);border-radius:10px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:10px;transition:width .5s ease;}
+.cat-bar-amt{font-family:'Fraunces',serif;font-size:.85rem;width:90px;text-align:right;color:var(--muted);}
+
+/* LIST */
+.fin-list{display:flex;flex-direction:column;gap:.5rem;}
+.fin-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#fff;border-radius:8px;border:1.5px solid var(--border);border-left-width:4px;}
+.fin-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.fin-item .nm{flex:1;font-size:.88rem;}
+.fin-item .dt{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);}
+.fin-item .badge{font-size:.66rem;padding:.12rem .5rem;border-radius:20px;background:var(--green-soft);color:var(--green);white-space:nowrap;}
+.fin-item .badge.pending{background:#fdf3d9;color:var(--gold);}
+.fin-item .amt{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;min-width:90px;text-align:right;}
+.fin-item .amt.in{color:var(--green);}
+.fin-item .amt.out{color:var(--accent);}
+.item-actions{display:flex;gap:.3rem;flex-shrink:0;}
+.edit-btn,.del-btn{background:none;border:none;cursor:pointer;font-size:.85rem;padding:.2rem .35rem;border-radius:4px;}
+.edit-btn:hover{background:#dce8f5;}.del-btn:hover{background:var(--accent-soft);}
+
+.day-group{margin-bottom:1.25rem;}
+.day-group-header{display:flex;justify-content:space-between;align-items:center;padding:.3rem .2rem .5rem;border-bottom:1.5px solid var(--border);margin-bottom:.5rem;}
+.day-group-date{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--ink);font-weight:500;}
+.day-group-sum{font-family:'Fraunces',serif;font-size:.95rem;font-weight:600;color:var(--muted);}
+
+.add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:.75rem;margin-bottom:1.5rem;align-items:end;}
+@media(max-width:600px){.add-row{grid-template-columns:1fr 1fr;}}
+.field{display:flex;flex-direction:column;gap:.3rem;}
+.field label{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.06em;color:var(--muted);}
+.field input,.field select{border:1.5px solid var(--border);border-radius:6px;padding:.55rem .7rem;font-family:'Noto Sans Thai',sans-serif;font-size:.86rem;background:#fff;color:var(--ink);outline:none;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.btn{padding:.55rem 1.2rem;border-radius:6px;border:none;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;font-size:.8rem;font-weight:500;transition:transform .1s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-ghost{background:var(--warm-mid);color:var(--ink);}
+
+.annual-chart{display:flex;align-items:flex-end;gap:.6rem;height:160px;margin-bottom:.5rem;}
+.annual-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:2px;cursor:pointer;}
+.annual-bars{display:flex;gap:2px;align-items:flex-end;height:100%;width:100%;justify-content:center;}
+.annual-bar{width:42%;border-radius:3px 3px 0 0;min-height:2px;transition:height .4s;}
+.annual-bar.inc{background:var(--green);}
+.annual-bar.exp{background:var(--accent);}
+.annual-lbl{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);}
+
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:.85rem;}
+.empty span{display:block;font-size:2rem;margin-bottom:.5rem;}
+.divider{border:none;border-top:1.5px solid var(--border);margin:1.5rem 0;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(26,26,46,.55);backdrop-filter:blur(3px);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--paper);border-radius:14px;padding:1.75rem;width:100%;max-width:460px;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.modal h3{font-family:'Fraunces',serif;font-weight:300;font-size:1.4rem;margin-bottom:1.25rem;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;}
+.modal-actions{display:flex;gap:.6rem;justify-content:flex-end;}
+
+#loading-overlay{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:1rem;transition:opacity .4s;}
+#loading-overlay h2{font-family:'Fraunces',serif;font-weight:300;color:var(--paper);font-size:1.5rem;}
+#loading-overlay p{font-family:'DM Mono',monospace;font-size:.75rem;color:#9a9585;}
+.spinner{width:36px;height:36px;border:3px solid #3a3a55;border-top-color:#c9aa8c;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <h2>การเงิน<em style="font-style:italic;color:#c9aa8c;">ของฉัน</em></h2>
+  <p id="loading-msg">กำลังเชื่อมต่อ…</p>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <h3 id="modal-title">แก้ไขรายการ</h3>
+    <div class="modal-grid">
+      <div class="field" style="grid-column:1/-1"><label>รายการ</label><input type="text" id="m-name"/></div>
+      <div class="field"><label>จำนวนเงิน (บาท)</label><input type="number" id="m-amt" step="0.01"/></div>
+      <div class="field"><label>วันที่</label><input type="date" id="m-date"/></div>
+      <div class="field" id="m-cat-wrap" style="grid-column:1/-1">
+        <label>หมวดหมู่</label>
+        <select id="m-cat">
+          <option value="utilities">ค่าสาธารณูปโภค</option>
+          <option value="transport">ค่าเดินทาง/รถ</option>
+          <option value="debt">หนี้/บัตรเครดิต</option>
+          <option value="health">สุขภาพ/ประกัน</option>
+          <option value="home">ค่าใช้จ่ายในบ้าน</option>
+          <option value="savings">เงินออม/กองทุน</option>
+          <option value="tax">ภาษี</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveEdit()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div id="sync-bar"><div id="sync-dot"></div><span id="sync-text">กำลังเชื่อมต่อ…</span></div>
+
+<header>
+  <h1>การเงิน<em>ของฉัน</em></h1>
+  <div id="live-date"></div>
+</header>
+
+<div class="month-nav">
+  <button class="btn btn-ghost" onclick="changeMonth(-1)">← เดือนก่อน</button>
+  <span id="month-label"></span>
+  <button class="btn btn-ghost" onclick="changeMonth(1)">เดือนถัดไป →</button>
+</div>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="switchTab('overview')">ภาพรวม</button>
+  <button class="tab-btn" onclick="switchTab('income')">รายรับ</button>
+  <button class="tab-btn" onclick="switchTab('expenses')">รายจ่าย</button>
+  <button class="tab-btn" onclick="switchTab('savings')">เงินออม</button>
+  <button class="tab-btn" onclick="switchTab('liabilities')">หนี้สิน</button>
+  <button class="tab-btn" onclick="switchTab('trend')">แนวโน้ม</button>
+</nav>
+
+<div id="tab-overview" class="panel active"></div>
+<div id="tab-income" class="panel"></div>
+<div id="tab-expenses" class="panel"></div>
+<div id="tab-savings" class="panel"></div>
+<div id="tab-liabilities" class="panel"></div>
+<div id="tab-trend" class="panel"></div>
+
+<script type="module">
+
+import{initializeApp}from"https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+import{getFirestore,doc,getDoc,setDoc,onSnapshot}from"https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyDAvZAH8ksrWVl2fx7qdQYqyOVkd9ztNhI",
+  authDomain:"ptwc-faca6.firebaseapp.com",
+  projectId:"ptwc-faca6",
+  storageBucket:"ptwc-faca6.firebasestorage.app",
+  messagingSenderId:"645074248828",
+  appId:"1:645074248828:web:63737f7f9ddfe9cea155f9"
+};
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+const SEED={"2026-05":{"income":[{"name":"เงินเดือน","date":"2026-04-28","amt":164996.0},{"name":"ค่าวิชีพ","date":"2026-04-28","amt":10000.0},{"name":"เบี้ยเลี้ยงเดินทาง","date":"2026-04-28","amt":8893.33},{"name":"ค่าน้ำมัน","date":"2026-04-28","amt":17365.51},{"name":"เบี้ยเลี้ยงเชียงใหม่-แม่ฮ่องสอน","date":"2026-04-28","amt":6675.0},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-04-30","amt":2230.0},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-04-30","amt":850.0},{"name":"เงินรางวัลพิเศษ 1/2569","date":"2026-05-08","amt":243819.65},{"name":"ค่ารักษาโอ รพ.พุทธ","date":"2026-05-08","amt":2423.0},{"name":"ค่าที่พักตากอากาศ","date":"2026-05-12","amt":1800.0},{"name":"ค่ารักษาทันตกรรม ต้นส้ม","date":"2026-05-20","amt":3600.0},{"name":"ค่าเยี่ยมไข้ สหหรณ์ บวท.","date":"2026-05-22","amt":2500.0}],"expenses":[{"name":"ค่า พรบ. OMODA","date":"2026-04-24","amt":645.21,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-04-25","amt":2066.78,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ค่าไฟฟ้า 99/247","date":"2026-04-25","amt":2356.89,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ค่าน้ำมัน","date":"2026-04-28","amt":17365.51,"status":"หักเงินเดือน","cat":"utilities"},{"name":"ค่าสมาขิกสหภาพฯ บวท.","date":"2026-04-28","amt":50.0,"status":"หักเงินเดือน","cat":"tax"},{"name":"เงินกองทุน","date":"2026-04-28","amt":24749.4,"status":"หักเงินเดือน","cat":"savings"},{"name":"เบี้ยเลี้ยงเดินทาง","date":"2026-04-28","amt":8893.33,"status":"หักเงินเดือน","cat":"transport"},{"name":"สหกรณ์ออมทรัพย์ บวท.","date":"2026-04-28","amt":62979.0,"status":"หักเงินเดือน","cat":"savings"},{"name":"หักภาษี ณ ที่จ่าย","date":"2026-04-28","amt":29543.03,"status":"หักเงินเดือน","cat":"tax"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-04-29","amt":5000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"บัตร Lotus กรุงศรี","date":"2026-04-29","amt":13336.89,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ซื้อนาฬิกา Smart Watch","date":"2026-04-29","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าหอเพียง","date":"2026-04-29","amt":6000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ภาษีรถ OMODA 2569","date":"2026-04-30","amt":1563.0,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ทำบุญพ่อพี่ตั้ม","date":"2026-04-30","amt":1000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าแม่บ้านย่า","date":"2026-05-01","amt":7500.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"แชร์พี่น้ำ","date":"2026-05-01","amt":2000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"แชร์อ้อย","date":"2026-05-01","amt":2400.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าโทรศัพท์ x 4","date":"2026-05-01","amt":1290.93,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าโทรศัพท์ พอเพียง","date":"2026-05-01","amt":784.93,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อล๊อตเตอรี่ เป๋าตัง","date":"2026-05-01","amt":960.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"บัตร KTC 1","date":"2026-05-02","amt":4599.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-05-05","amt":2432.55,"status":"จ่ายขั้นต่ำ","cat":"debt"},{"name":"ค่าอินเตอร์เน็ต True","date":"2026-05-08","amt":551.16,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ไทยประกัน 37801472","date":"2026-05-08","amt":6600.0,"status":"จ่ายแล้ว","cat":"health"},{"name":"กอช. แม่โอ","date":"2026-05-08","amt":2000.0,"status":"จ่ายแล้ว","cat":"savings"},{"name":"เงินเดือนเพียง","date":"2026-05-08","amt":5000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อกล่องพลาสติกใหญ่","date":"2026-05-09","amt":1000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"คืนเงินโอ","date":"2026-05-09","amt":12000.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-05-09","amt":27974.43,"status":"จ่ายส่วนที่เหลือ","cat":"debt"},{"name":"ค่างวดรถ OMODA 15/48","date":"2026-05-10","amt":15124.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าใช้จ่ายในบ้าน-โอ","date":"2026-05-11","amt":2900.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"คืนเงินยายแดง","date":"2026-05-13","amt":20000.0,"status":"จ่ายแล้ว","cat":"debt"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-05-13","amt":2000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เปลี่ยงยางรถ OMODA","date":"2026-05-15","amt":17400.0,"status":"จ่ายแล้ว","cat":"transport"},{"name":"ไทยประกันชีวิต","date":"2026-05-15","amt":965.0,"status":"หักเงินเดือน","cat":"health"},{"name":"ค่าลงทะเบียนติว ATC","date":"2026-05-15","amt":41000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อล๊อตเตอรี่ พลัส","date":"2026-05-15","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"เติมเป๋าตังค์ โอ","date":"2026-05-16","amt":600.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าใช้จ่ายในบ้าน","date":"2026-05-17","amt":2000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"ซื้อ Keyboard ให้เพียง","date":"2026-05-18","amt":2000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าใช้จ่ายในบ้าน โอ","date":"2026-05-18","amt":3000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"โอนให้เพียง (เที่ยวเขาค้อ)","date":"2026-05-18","amt":5000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อ Mouse ให้เพียง","date":"2026-05-18","amt":1312.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าเครื่องสำอาง โอ","date":"2026-05-21","amt":2000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าลงทะเบียนเพียง","date":"2026-05-21","amt":1200.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ครัวบ้านแม่ กิ๊กพียง","date":"2026-05-21","amt":835.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เติมทรู ให้เพียง","date":"2026-05-22","amt":1000.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ซื้อเครื่องทำน้ำอุ่น TikTok","date":"2026-05-23","amt":1718.55,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"เติมน้ำมัน CRV","date":"2026-05-23","amt":1000.0,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"ซื้อ Printer","date":"2026-05-23","amt":2300.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"Topland อาเขต","date":"2026-05-23","amt":820.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"กระดาษ A4+ปากกา","date":"2026-05-23","amt":185.0,"status":"จ่ายแล้ว","cat":"other"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-05-25","amt":2742.21,"status":"จ่ายแล้ว","cat":"utilities"},{"name":"โอนให้แม่บ้านศูนย์","date":"2026-05-26","amt":1000.0,"status":"จ่ายแล้ว","cat":"home"},{"name":"เติมเงินทรูโอ","date":"2026-05-27","amt":500.0,"status":"จ่ายแล้ว","cat":"other"}],"savings":[{"name":"กอช. แม่โอ","amt":69321.38},{"name":"สหกรณ์ออมทรัพย์","amt":10714.14},{"name":"สหกรณ์ออมทรัพย์พิเศษ","amt":42450.38},{"name":"ทุนเรือนหุ้น","amt":1363500.0},{"name":"กองทุน","amt":1834290.3}],"liabilities":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]},"2026-06":{"income":[{"name":"เงินเดือน","date":"2026-05-28","amt":164996.0},{"name":"ค่าวิชีพ","date":"2026-05-28","amt":10000.0},{"name":"ค่าเบี้ยเลี้ยงเดินทาง","date":"2026-05-28","amt":3190.0},{"name":"พอเพียง (รางวัลจากย่า)","date":"2026-06-07","amt":12000.0},{"name":"เข้าบัญชี","date":"2026-06-07","amt":89000.0}],"expenses":[{"name":"หักภาษี ณ ที่จ่าย","date":"2026-05-28","amt":23935.32,"status":"หักเงินเดือน","cat":"tax"},{"name":"เงินกองทุน","date":"2026-05-28","amt":24749.4,"status":"หักเงินเดือน","cat":"savings"},{"name":"ค่าเบี้ยเลี้ยงเดินทาง (หัก)","date":"2026-05-28","amt":3190.0,"status":"หักเงินเดือน","cat":"transport"},{"name":"ค่าสมาขิกสหภาพฯ บวท.","date":"2026-05-28","amt":50.0,"status":"หักเงินเดือน","cat":"tax"},{"name":"สหกรณ์ออมทรัพย์ บวท.","date":"2026-05-28","amt":62979.0,"status":"หักเงินเดือน","cat":"savings"},{"name":"ค่าใช้จ่ายในบ้าน โอ","date":"2026-05-28","amt":2000.0,"status":"","cat":"home"},{"name":"กดเงินสด โอ","date":"2026-05-28","amt":900.0,"status":"","cat":"other"},{"name":"บัตร Lotus กรุงศรี","date":"2026-05-29","amt":10914.3,"status":"","cat":"debt"},{"name":"ค่าหอ+ค่าไฟฟ้า พอเพียง","date":"2026-05-30","amt":5000.0,"status":"","cat":"utilities"},{"name":"ไทยประกัน 37801472","date":"2026-05-31","amt":6600.0,"status":"","cat":"health"},{"name":"ไทยประกัน 21424280","date":"2026-05-31","amt":1388.0,"status":"","cat":"health"},{"name":"ไทยประกัน 86554551","date":"2026-05-31","amt":26180.0,"status":"","cat":"health"},{"name":"เงินเดือนเพียง","date":"2026-05-31","amt":10000.0,"status":"","cat":"other"},{"name":"แชร์อ้อย","date":"2026-06-01","amt":2000.0,"status":"","cat":"debt"},{"name":"บัตร KTC 1","date":"2026-06-01","amt":419.0,"status":"","cat":"debt"},{"name":"บัตร KTC 2","date":"2026-06-01","amt":1474.0,"status":"","cat":"debt"},{"name":"ค่าแม่บ้านย่า","date":"2026-06-02","amt":7500.0,"status":"","cat":"home"},{"name":"แชร์พี่น้ำ","date":"2026-06-02","amt":2000.0,"status":"","cat":"utilities"},{"name":"ค่าโทรศัพท์ x 4","date":"2026-06-03","amt":961.93,"status":"","cat":"other"},{"name":"ค่าโทรศัพท์ พอเพียง","date":"2026-06-03","amt":784.93,"status":"","cat":"other"},{"name":"ค่างวดรถ OMODA","date":"2026-06-10","amt":15124.0,"status":"","cat":"debt"},{"name":"ค่าอินเตอร์เน็ต True","date":"2026-06-10","amt":533.93,"status":"","cat":"utilities"},{"name":"กอช. แม่โอ","date":"2026-06-10","amt":2000.0,"status":"","cat":"savings"},{"name":"ค่าไฟฟ้า 2/2","date":"2026-06-25","amt":2138.9,"status":"","cat":"utilities"},{"name":"ค่าไฟฟ้า 99/247","date":"2026-06-25","amt":1918.18,"status":"","cat":"utilities"}],"savings":[{"name":"กอช. แม่โอ","amt":71301.02},{"name":"สหกรณ์ออมทรัพย์","amt":10714.14},{"name":"สหกรณ์ออมทรัพย์พิเศษ","amt":43952.38},{"name":"ทุนเรือนหุ้น","amt":1369000.0},{"name":"กองทุน","amt":1692595.2},{"name":"KKP","amt":1000.0},{"name":"NVDA","amt":1000.0},{"name":"RKLB","amt":1000.0}],"liabilities":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]},"_liab_timeline":[{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-04-30","amt":2984883.0},{"name":"สหกรณ์ออมทรัพย์ (คงเหลือ)","date":"2026-05-31","amt":2947808.0}]};
+
+const CAT_LABEL={utilities:"ค่าสาธารณูปโภค",transport:"ค่าเดินทาง/รถ",debt:"หนี้/บัตรเครดิต",health:"สุขภาพ/ประกัน",home:"ค่าใช้จ่ายในบ้าน",savings:"เงินออม/กองทุน",tax:"ภาษี",other:"อื่นๆ"};
+const CAT_COLOR={utilities:"#4a80b5",transport:"#c5960a",debt:"#c9553a",health:"#8a6daa",home:"#3a7d5a",savings:"#2a9a94",tax:"#b54a55",other:"#8a8580"};
+const MONTHS_TH=["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+const PAID_WORDS=["จ่ายแล้ว","หักเงินเดือน"];
+
+let data={};
+let viewKey="2026-06";
+let editCtx=null;
+
+function setSync(state,msg){
+  document.getElementById("sync-dot").style.background=state==="synced"?"#3a7d5a":state==="syncing"?"#c5960a":"#c9553a";
+  document.getElementById("sync-text").textContent=msg;
+}
+const uDoc=()=>doc(db,"finances","data");
+async function persist(){
+  setSync("syncing","กำลังบันทึก…");
+  try{await setDoc(uDoc(),{months:data});setSync("synced","บันทึกแล้ว");}
+  catch(e){setSync("error","บันทึกไม่สำเร็จ");console.error(e);}
+}
+
+async function init(){
+  try{
+    const snap=await getDoc(uDoc());
+    if(snap.exists()&&snap.data().months){data=snap.data().months;}
+    else{data=JSON.parse(JSON.stringify(SEED));await setDoc(uDoc(),{months:data});}
+    onSnapshot(uDoc(),s=>{if(s.exists()&&s.data().months){data=s.data().months;renderAll();setSync("synced","ข้อมูลล่าสุด");}});
+    // default to latest month present
+    const keys=Object.keys(data).sort();
+    if(keys.length)viewKey=keys[keys.length-1];
+    hideLoading();renderAll();
+  }catch(e){
+    document.getElementById("loading-msg").textContent="เชื่อมต่อไม่สำเร็จ — ตรวจสอบ Firestore rules";
+    setSync("error","เชื่อมต่อไม่สำเร็จ");console.error(e);
+  }
+}
+function hideLoading(){const o=document.getElementById("loading-overlay");o.style.opacity="0";setTimeout(()=>o.style.display="none",400);}
+
+const baht=n=>"฿"+Number(n||0).toLocaleString("th-TH",{maximumFractionDigits:0});
+const bahtFull=n=>"฿"+Number(n||0).toLocaleString("th-TH",{minimumFractionDigits:2,maximumFractionDigits:2});
+function curMonth(){return data[viewKey]||{income:[],expenses:[],savings:[],liabilities:[]};}
+function sum(arr){return (arr||[]).reduce((s,x)=>s+(x.amt||0),0);}
+
+const updateDate=()=>{document.getElementById("live-date").textContent=new Date().toLocaleDateString("th-TH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});};
+updateDate();setInterval(updateDate,60000);
+
+window.switchTab=function(name){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  const order=["overview","income","expenses","savings","liabilities","trend"];
+  document.querySelectorAll(".tab-btn")[order.indexOf(name)].classList.add("active");
+};
+
+window.changeMonth=function(dir){
+  const keys=Object.keys(data).sort();
+  let i=keys.indexOf(viewKey);
+  if(i===-1){viewKey=keys[keys.length-1];i=keys.length-1;}
+  const ni=i+dir;
+  if(ni>=0&&ni<keys.length){viewKey=keys[ni];renderAll();}
+};
+
+function monthLabel(key){const[y,m]=key.split("-").map(Number);return MONTHS_TH[m-1]+" "+(y+543);}
+
+function renderAll(){
+  document.getElementById("month-label").textContent=monthLabel(viewKey);
+  renderOverview();renderList("income");renderExpenses();
+  renderList("savings");renderLiabilities();renderTrend();
+}
+
+function renderOverview(){
+  const m=curMonth();
+  const inc=sum(m.income),exp=sum(m.expenses),bal=inc-exp;
+  const sav=sum(m.savings);
+  // liabilities = latest outstanding loan balance (not a sum)
+  const liabItems=m.liabilities||[];
+  const liab=liabItems.length?liabItems[liabItems.length-1].amt:0;
+  const expPct=inc>0?Math.min(exp/inc*100,100):0;
+  // category totals
+  const catT={};(m.expenses||[]).forEach(e=>{catT[e.cat||"other"]=(catT[e.cat||"other"]||0)+e.amt;});
+  const maxCat=Math.max(...Object.values(catT),1);
+  const el=document.getElementById("tab-overview");
+  el.innerHTML=`
+    <div class="summary-cards">
+      <div class="sum-card"><div class="label">รายรับรวม</div><div class="value income">${baht(inc)}</div><div class="sub">INCOME</div></div>
+      <div class="sum-card"><div class="label">รายจ่ายรวม</div><div class="value expense">${baht(exp)}</div><div class="sub">EXPENSES</div></div>
+      <div class="sum-card light"><div class="label">คงเหลือ</div><div class="value ${bal>=0?"income":"expense"}">${baht(bal)}</div><div class="sub">${bal>=0?"เหลือเก็บ":"ติดลบ"}</div></div>
+    </div>
+    <div class="balance-vis">
+      <div class="section-label">สัดส่วนรายจ่ายต่อรายรับ</div>
+      <div class="balance-track"><div class="balance-fill-exp" style="width:${expPct}%"></div></div>
+      <div class="balance-legend"><span>ใช้ไป ${expPct.toFixed(0)}%</span><span>${baht(bal)} เหลือ</span></div>
+    </div>
+    <div class="summary-cards">
+      <div class="sum-card light"><div class="label">เงินออม/กองทุนสะสม</div><div class="value" style="color:var(--green)">${baht(sav)}</div><div class="sub">SAVINGS</div></div>
+      <div class="sum-card light"><div class="label">หนี้สหกรณ์ (คงเหลือ)</div><div class="value" style="color:var(--accent)">${baht(liab)}</div><div class="sub">LOAN BALANCE</div></div>
+    </div>
+    <hr class="divider"/>
+    <div class="section-label">รายจ่ายแยกตามหมวดหมู่</div>
+    ${Object.entries(catT).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`
+      <div class="cat-bar-row">
+        <span class="cat-bar-label">${CAT_LABEL[c]||c}</span>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(a/maxCat*100).toFixed(1)}%;background:${CAT_COLOR[c]||"#888"}"></div></div>
+        <span class="cat-bar-amt">${baht(a)}</span>
+      </div>`).join("")||'<div class="empty"><span>📊</span>ยังไม่มีรายจ่าย</div>'}
+  `;
+}
+
+function addFormHTML(section){
+  const isExp=section==="expenses";
+  const catSel=isExp?`<div class="field"><label>หมวดหมู่</label><select id="add-cat">${Object.entries(CAT_LABEL).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>`:"";
+  const btnColor=section==="income"||section==="savings"?"btn-green":"btn-primary";
+  return `<div class="add-row">
+    <div class="field"><label>รายการ</label><input type="text" id="add-name" placeholder="ชื่อรายการ"/></div>
+    <div class="field"><label>จำนวนเงิน</label><input type="number" id="add-amt" step="0.01" placeholder="0"/></div>
+    ${(section==="income"||section==="expenses")?'<div class="field"><label>วันที่</label><input type="date" id="add-date"/></div>':""}
+    ${catSel}
+    <button class="btn ${btnColor}" onclick="addItem('${section}')">+ เพิ่ม</button>
+  </div>`;
+}
+
+function renderList(section){
+  const m=curMonth();const items=m[section]||[];
+  const total=sum(items);
+  const titles={income:"รายรับ",savings:"เงินออม / กองทุน",liabilities:"หนี้สิน / เงินคงเหลือ"};
+  const amtClass=section==="income"||section==="savings"?"in":"out";
+  const el=document.getElementById("tab-"+section);
+  el.innerHTML=`
+    <div class="summary-cards"><div class="sum-card"><div class="label">รวม${titles[section]}</div><div class="value ${section==="income"?"income":""}">${baht(total)}</div><div class="sub">${items.length} รายการ</div></div></div>
+    ${addFormHTML(section)}
+    <hr class="divider"/>
+    <div class="fin-list">
+      ${items.length?items.map((it,i)=>`
+        <div class="fin-item" style="border-left-color:${section==="income"?"var(--green)":section==="savings"?"#2a9a94":section==="liabilities"?"#b54a55":"var(--accent)"}">
+          <span class="nm">${it.name}</span>
+          ${it.date?`<span class="dt">${it.date}</span>`:""}
+          <span class="amt ${amtClass}">${baht(it.amt)}</span>
+          <div class="item-actions">
+            <button class="edit-btn" onclick="openEdit('${section}',${i})">✏️</button>
+            <button class="del-btn" onclick="delItem('${section}',${i})">✕</button>
+          </div>
+        </div>`).join(""):'<div class="empty"><span>📭</span>ยังไม่มีรายการ</div>'}
+    </div>`;
+}
+
+function renderExpenses(){
+  const m=curMonth();const items=m.expenses||[];
+  const total=sum(items);
+  const el=document.getElementById("tab-expenses");
+  // group by date desc
+  const byDay={};items.forEach((it,idx)=>{const d=it.date||"ไม่ระบุวันที่";(byDay[d]=byDay[d]||[]).push({...it,_i:idx});});
+  const days=Object.keys(byDay).sort((a,b)=>b.localeCompare(a));
+  el.innerHTML=`
+    <div class="summary-cards"><div class="sum-card"><div class="label">รวมรายจ่าย</div><div class="value expense">${baht(total)}</div><div class="sub">${items.length} รายการ</div></div></div>
+    ${addFormHTML("expenses")}
+    <hr class="divider"/>
+    ${items.length?days.map(d=>{
+      const ds=byDay[d];const dsum=ds.reduce((s,x)=>s+x.amt,0);
+      const lbl=d!=="ไม่ระบุวันที่"?new Date(d+"T00:00:00").toLocaleDateString("th-TH",{weekday:"short",day:"numeric",month:"short"}):d;
+      return `<div class="day-group">
+        <div class="day-group-header"><span class="day-group-date">${lbl}</span><span class="day-group-sum">${baht(dsum)}</span></div>
+        ${ds.map(it=>{
+          const paid=PAID_WORDS.includes(it.status);
+          return `<div class="fin-item" style="border-left-color:${CAT_COLOR[it.cat||"other"]}">
+            <span class="dot" style="background:${CAT_COLOR[it.cat||"other"]}"></span>
+            <span class="nm">${it.name}</span>
+            ${it.status?`<span class="badge ${paid?"":"pending"}">${it.status}</span>`:""}
+            <span class="amt out">${baht(it.amt)}</span>
+            <div class="item-actions">
+              <button class="edit-btn" onclick="openEdit('expenses',${it._i})">✏️</button>
+              <button class="del-btn" onclick="delItem('expenses',${it._i})">✕</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>`;
+    }).join(""):'<div class="empty"><span>📭</span>ยังไม่มีรายจ่าย</div>'}
+  `;
+}
+
+function renderLiabilities(){
+  const el=document.getElementById("tab-liabilities");
+  const tl=(data._liab_timeline||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const m=curMonth();
+  const cur=(m.liabilities&&m.liabilities.length)?m.liabilities[m.liabilities.length-1].amt:(tl.length?tl[tl.length-1].amt:0);
+  // change vs previous snapshot
+  let prev=null,change=null;
+  if(tl.length>=2){prev=tl[tl.length-2].amt;change=cur-prev;}
+  const maxV=Math.max(...tl.map(x=>x.amt),1);
+  el.innerHTML=`
+    <div class="summary-cards">
+      <div class="sum-card"><div class="label">ยอดหนี้คงเหลือล่าสุด</div><div class="value expense">${baht(cur)}</div><div class="sub">สหกรณ์ออมทรัพย์</div></div>
+      ${change!==null?`<div class="sum-card light"><div class="label">เปลี่ยนแปลงจากเดือนก่อน</div><div class="value" style="color:${change<=0?"var(--green)":"var(--accent)"}">${change<=0?"▼ ":"▲ "}${baht(Math.abs(change))}</div><div class="sub">${change<=0?"ชำระไปแล้ว":"เพิ่มขึ้น"}</div></div>`:""}
+    </div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:1rem 1.2rem 1.2rem;font-size:.8rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5">
+      💡 ยอดนี้คือ<strong style="color:var(--ink)">หนี้คงเหลือ ณ สิ้นเดือน</strong> ไม่ใช่ยอดที่ต้องบวกกันทุกเดือน — แต่ละเดือนจะแสดงยอดล่าสุดที่เหลืออยู่
+    </div>
+    <div class="section-label">ประวัติยอดคงเหลือรายเดือน</div>
+    <div class="fin-list">
+      ${tl.length?tl.slice().reverse().map((it,ri)=>{
+        const realIdx=tl.length-1-ri;
+        const p=realIdx>0?tl[realIdx-1].amt:null;
+        const ch=p!==null?it.amt-p:null;
+        const dlbl=it.date?new Date(it.date+"T00:00:00").toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"}):"";
+        return `<div class="fin-item" style="border-left-color:#b54a55">
+          <span class="nm">${dlbl}</span>
+          ${ch!==null?`<span class="dt" style="color:${ch<=0?"var(--green)":"var(--accent)"}">${ch<=0?"▼":"▲"} ${baht(Math.abs(ch))}</span>`:""}
+          <span class="amt out">${baht(it.amt)}</span>
+        </div>`;
+      }).join(""):'<div class="empty"><span>📭</span>ยังไม่มีข้อมูล</div>'}
+    </div>
+    <hr class="divider"/>
+    <div class="section-label">เพิ่ม/แก้ไขยอดคงเหลือเดือนนี้</div>
+    <div class="add-row">
+      <div class="field"><label>ยอดคงเหลือ (บาท)</label><input type="number" id="liab-amt" step="0.01" placeholder="${cur}" value="${cur}"/></div>
+      <div class="field"><label>ณ วันที่</label><input type="date" id="liab-date" value="${tl.length?tl[tl.length-1].date:""}"/></div>
+      <button class="btn btn-primary" onclick="setLiability()">บันทึก</button>
+    </div>`;
+}
+
+window.setLiability=async function(){
+  const amt=parseFloat(document.getElementById("liab-amt").value);
+  const date=document.getElementById("liab-date").value;
+  if(isNaN(amt)||!date)return;
+  if(!data._liab_timeline)data._liab_timeline=[];
+  // update existing snapshot for that date, or add new
+  const idx=data._liab_timeline.findIndex(x=>x.date===date);
+  if(idx>=0)data._liab_timeline[idx].amt=amt;
+  else data._liab_timeline.push({name:"สหกรณ์ออมทรัพย์ (คงเหลือ)",date,amt});
+  data._liab_timeline.sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  // set current month's liability to latest snapshot
+  if(!data[viewKey])data[viewKey]={income:[],expenses:[],savings:[],liabilities:[]};
+  data[viewKey].liabilities=[{name:"สหกรณ์ออมทรัพย์ (คงเหลือ)",date,amt}];
+  renderAll();await persist();
+};
+
+function renderTrend(){
+  const keys=Object.keys(data).sort();
+  const maxV=Math.max(...keys.map(k=>Math.max(sum(data[k].income),sum(data[k].expenses))),1);
+  const el=document.getElementById("tab-trend");
+  el.innerHTML=`
+    <div class="section-label">รายรับ vs รายจ่าย แต่ละเดือน</div>
+    <div class="annual-chart">
+      ${keys.map(k=>{
+        const inc=sum(data[k].income),exp=sum(data[k].expenses);
+        return `<div class="annual-col" onclick="(function(){viewKey='${k}';renderAll();switchTab('overview');})()">
+          <div class="annual-bars">
+            <div class="annual-bar inc" style="height:${(inc/maxV*100).toFixed(1)}%" title="รายรับ ${baht(inc)}"></div>
+            <div class="annual-bar exp" style="height:${(exp/maxV*100).toFixed(1)}%" title="รายจ่าย ${baht(exp)}"></div>
+          </div>
+          <div class="annual-lbl">${monthLabel(k).split(" ")[0].slice(0,3)}</div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div style="display:flex;gap:1.5rem;justify-content:center;margin:1rem 0 2rem;font-size:.78rem;color:var(--muted)">
+      <span><span style="display:inline-block;width:12px;height:12px;background:var(--green);border-radius:2px;margin-right:5px"></span>รายรับ</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:var(--accent);border-radius:2px;margin-right:5px"></span>รายจ่าย</span>
+    </div>
+    <hr class="divider"/>
+    <div class="section-label">สรุปแต่ละเดือน</div>
+    <div class="fin-list">
+      ${keys.slice().reverse().map(k=>{
+        const inc=sum(data[k].income),exp=sum(data[k].expenses),bal=inc-exp;
+        return `<div class="fin-item" style="border-left-color:${bal>=0?"var(--green)":"var(--accent)"};cursor:pointer" onclick="(function(){viewKey='${k}';renderAll();switchTab('overview');})()">
+          <span class="nm">${monthLabel(k)}</span>
+          <span class="dt">รับ ${baht(inc)} · จ่าย ${baht(exp)}</span>
+          <span class="amt ${bal>=0?"in":"out"}">${baht(bal)}</span>
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+
+window.addItem=async function(section){
+  const name=document.getElementById("add-name").value.trim();
+  const amt=parseFloat(document.getElementById("add-amt").value);
+  if(!name||!amt)return;
+  const dateEl=document.getElementById("add-date");
+  const item={name,amt};
+  if(dateEl)item.date=dateEl.value||new Date().toISOString().slice(0,10);
+  if(section==="expenses")item.cat=document.getElementById("add-cat").value;
+  if(!data[viewKey])data[viewKey]={income:[],expenses:[],savings:[],liabilities:[]};
+  data[viewKey][section].push(item);
+  renderAll();await persist();
+};
+
+window.delItem=async function(section,i){
+  if(!confirm("ลบรายการนี้?"))return;
+  data[viewKey][section].splice(i,1);
+  renderAll();await persist();
+};
+
+window.openEdit=function(section,i){
+  editCtx={section,i};
+  const it=data[viewKey][section][i];
+  document.getElementById("m-name").value=it.name;
+  document.getElementById("m-amt").value=it.amt;
+  document.getElementById("m-date").value=it.date||"";
+  document.getElementById("m-cat-wrap").style.display=section==="expenses"?"":"none";
+  if(section==="expenses")document.getElementById("m-cat").value=it.cat||"other";
+  document.getElementById("edit-modal").classList.remove("hidden");
+};
+window.closeModal=function(){document.getElementById("edit-modal").classList.add("hidden");editCtx=null;};
+window.saveEdit=async function(){
+  if(!editCtx)return;
+  const it=data[viewKey][editCtx.section][editCtx.i];
+  it.name=document.getElementById("m-name").value.trim();
+  it.amt=parseFloat(document.getElementById("m-amt").value)||0;
+  const dv=document.getElementById("m-date").value;if(dv)it.date=dv;
+  if(editCtx.section==="expenses")it.cat=document.getElementById("m-cat").value;
+  closeModal();renderAll();await persist();
+};
+document.getElementById("edit-modal").addEventListener("click",function(e){if(e.target===this)closeModal();});
+
+init();
+
+</script>
+</body>
+</html>
